@@ -37,12 +37,10 @@ const SignUp = () => {
   };
 
   const handleShow = () => {
-    setShow(show => !show);
-  }
+    setShow((show) => !show);
+  };
 
-  const handleSubmit = () => {
-
-  }
+  const handleSubmit = () => {};
 
   return (
     <VStack spacing={"5px"}>
@@ -90,7 +88,9 @@ const SignUp = () => {
             name="password"
             value={confirmPassword}
             placeholder="Confirm password"
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setConfirmPassword(e.target.value)
+            }
           />
           <InputRightElement width={"4.5rem"}>
             <Button onClick={handleShow}>{show ? "Hide" : "Show"}</Button>
@@ -112,7 +112,7 @@ const SignUp = () => {
       <Button
         colorScheme={"blue"}
         width="100%"
-        style={{marginTop: 15}}
+        style={{ marginTop: 15 }}
         onClick={handleSubmit}
       >
         Sign Up
@@ -122,4 +122,3 @@ const SignUp = () => {
 };
 
 export default SignUp;
- 
