@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent } from "react";
+import React, { useState, ChangeEvent, MouseEvent } from "react";
 import {
   Button,
   FormControl,
@@ -78,7 +78,9 @@ const Login = () => {
         colorScheme={"red"}
         width="100%"
         style={{ marginTop: 15 }}
-        onClick={(e) => setUser({email: "eddybruv@example.com", password: "123456"})}
+        onClick={(e: MouseEvent<HTMLButtonElement>) =>
+          setUser({ email: "eddybruv@example.com", password: "123456" })
+        }
       >
         Guest user credentials
       </Button>
