@@ -1,5 +1,7 @@
 import express from "express";
+import connectDB from "./config/db";
 import chats from "./data/data";
+import UserRouter from "./routes/user.route"
 
 require("dotenv").config();
 
@@ -8,10 +10,10 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
-app.get("/api/chats", async (req, res) => {
-  res.json(chats)
-})
+app.use('/api/user', UserRouter)
 
+
+connectDB;
 const PORT = process.env.PORT || 8080
 
 app.listen(PORT, () => {
