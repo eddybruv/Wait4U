@@ -3,6 +3,17 @@ import { IUser } from "../types/user.type";
 import userModel from "../models/user.model";
 import generateToken from "../config/generateToken";
 
+const bcrypt = require("bcrypt");
+
+const genHashPw = async (password: string): Promise<string> => {
+  const salt = await bcrypt.genSalt(10);
+  return await bcrypt.hash(password, salt);
+}
+
+const matchPassword = async (hashPw: string, password: string): Promise<boolean> => {
+  return await bcrypt.compare(hashPw, password);
+}
+
 export const registerUser = async (req: Request, res: Response) => {
   const { name, email, password, pic } = req.body as Pick<
     IUser,
@@ -24,7 +35,7 @@ export const registerUser = async (req: Request, res: Response) => {
   const newUser = await userModel.create({
     name,
     email,
-    password,
+    password: await genHashPw(password),
     pic,
   });
 
@@ -42,7 +53,9 @@ export const authUser = async(req: Request, res: Response) => {
 
   const user = await userModel.findOne ({email});
 
-  if (user && (await userModel.matchPassword(password))) {
-    res.json({data: user});
+  if (user && (await matchPassword(password, user.password))) {
+    res.json({ data: user });
+  } else {
+    res.json({ message: "user not found" });
   }
 }
