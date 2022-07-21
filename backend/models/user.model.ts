@@ -24,17 +24,5 @@ const UserSchema: Schema = new Schema(
   }
 );
 
-UserSchema.methods.matchPassword = async (enteredPassword: string) => {
-  return await bcrypt.compare(enteredPassword, this.password);
-};
-
-UserSchema.pre("save", async (next: NextFunction) => {
-  if (!this.isModified) {
-    next();
-  }
-
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hast(this.password, salt);
-});
 
 export default model<IUser>("user", UserSchema);
