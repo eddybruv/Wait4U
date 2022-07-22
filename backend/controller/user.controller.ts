@@ -8,11 +8,14 @@ const bcrypt = require("bcrypt");
 const genHashPw = async (password: string): Promise<string> => {
   const salt = await bcrypt.genSalt(10);
   return await bcrypt.hash(password, salt);
-}
+};
 
-const matchPassword = async (hashPw: string, password: string): Promise<boolean> => {
+const matchPassword = async (
+  hashPw: string,
+  password: string
+): Promise<boolean> => {
   return await bcrypt.compare(hashPw, password);
-}
+};
 
 export const registerUser = async (req: Request, res: Response) => {
   const { name, email, password, pic } = req.body as Pick<
@@ -48,14 +51,28 @@ export const registerUser = async (req: Request, res: Response) => {
   }
 };
 
-export const authUser = async(req: Request, res: Response) => {
-  const {email, password} = req.body;
+export const authUser = async (req: Request, res: Response) => {
+  const { email, password } = req.body;
 
-  const user = await userModel.findOne ({email});
+  const user = await userModel.findOne({ email });
 
   if (user && (await matchPassword(password, user.password))) {
-    res.json({ data: user });
+    res.json({ data: user, token: generateToken(user?._id) });
   } else {
     res.json({ message: "user not found" });
   }
-}
+};
+
+export const allUsers = async (req: Request, res: Response) => {
+  const keyword = req.query.search
+    ? {
+        $or: [
+          { name: { $regex: req.query.search, $options: "i" } },
+          { email: { $regex: req.query.search, $options: "i" } },
+        ],
+      }
+    : {};
+  // @ts-ignore
+  const users = await userModel.find(keyword).find({_id: {$ne: req.user._id}});
+  res.send(users);
+};
