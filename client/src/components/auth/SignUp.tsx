@@ -7,7 +7,10 @@ import {
   InputGroup,
   InputRightElement,
   VStack,
+  useToast,
 } from "@chakra-ui/react";
+import { useHistory } from "react-router-dom";
+import axios from "axios";
 
 interface IUser {
   name: string;
@@ -17,6 +20,8 @@ interface IUser {
 }
 
 const SignUp = () => {
+  const PRESET = "wait4u";
+
   const [user, setUser] = useState<IUser>({
     name: "",
     email: "",
@@ -26,6 +31,9 @@ const SignUp = () => {
 
   const [show, setShow] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const toast = useToast();
+  const history = useHistory();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { value, name } = e.target;
@@ -33,14 +41,101 @@ const SignUp = () => {
       ...user,
       [name]: value,
     });
-    console.log(user);
   };
 
   const handleShow = () => {
     setShow((show) => !show);
   };
 
-  const handleSubmit = () => {};
+  const handlePostImage = (pic: File) => {
+    setLoading(true);
+    if (pic === undefined) {
+      toast({
+        title: "Please Select an Image",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom",
+      });
+      setLoading(false);
+      return;
+    }
+
+    if (pic.type === "image/png" || pic.type === "image/jpeg") {
+      const data = new FormData();
+      data.append("file", pic);
+      data.append("upload_preset", PRESET);
+      data.append("cloud_name", "eddybruv");
+
+      fetch("https://api.cloudinary.com/v1_1/eddybruv/image/upload", {
+        method: "post",
+        body: data,
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          setUser({ ...user, pic: data.url });
+          setLoading(false);
+        });
+    } else {
+      toast({
+        title: "Please Select an Image",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom",
+      });
+      setLoading(false);
+      return;
+    }
+  };
+
+  const handleSubmit = async () => {
+    setLoading(() => true);
+    if (!user.name || !user.email || !user.password || !confirmPassword) {
+      toast({
+        title: "Please fill all the fields",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom",
+      });
+      setLoading(false);
+      return;
+    }
+    if (user.password !== confirmPassword) {
+      toast({
+        title: "Passwords don't match!",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom",
+      });
+      return;
+    }
+
+    try {
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+        },
+      };
+      const data = await axios
+        .post("/api/user", user, config)
+        .then((data) => data.data);
+      setLoading(false);
+      localStorage.setItem("userInfo", JSON.stringify(data));
+      history.push("/chats");
+    } catch (error) {
+      toast({
+        title: "Error Occured!",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom",
+      });
+      setLoading(false);
+    }
+  };
 
   return (
     <VStack spacing={"5px"}>
@@ -105,7 +200,7 @@ const SignUp = () => {
           p={1.5}
           accept="image/*"
           // @ts-ignore: Object is possibly 'null'
-          onChange={(e) => setUser({ ...user, pic: e.target.files[0] })}
+          onChange={(e) => handlePostImage(e.target.files[0])}
         />
       </FormControl>
 
@@ -114,6 +209,7 @@ const SignUp = () => {
         width="100%"
         style={{ marginTop: 15 }}
         onClick={handleSubmit}
+        isLoading={loading}
       >
         Sign Up
       </Button>
