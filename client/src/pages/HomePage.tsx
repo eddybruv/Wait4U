@@ -20,7 +20,7 @@ const Homepage = () => {
     const data = localStorage.getItem("userInfo");
     const user = data && JSON.parse(data);
 
-    if (user) history.push("/chats");
+    if (user) history?.push("/chats");
   }, [history])
 
   return (
