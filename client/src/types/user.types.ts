@@ -1,5 +1,6 @@
 export interface IUser {
-  data: {
+  user: {
+    data: {
     name: string;
     password: string;
     pic: string;
@@ -11,4 +12,5 @@ export interface IUser {
     __v: string;
   };
   token: string;
+  }
 }
