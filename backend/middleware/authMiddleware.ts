@@ -24,13 +24,11 @@ export const protect = async (
       req.user = await userModel.findById(decoded.id).select("-password");
       next();
     } catch (error) {
-      res.status(401);
-      throw new Error("Not authorized, token failed");
+      res.status(401).json({message: "no token, no authorization"});
     }
   }
 
   if (!token) {
-    res.status(401);
-    throw new Error("Not authorized, no token");
+    res.status(401).json({message: "no token, no authorization"});
   }
 };
