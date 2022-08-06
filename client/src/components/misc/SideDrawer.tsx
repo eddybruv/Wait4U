@@ -16,28 +16,97 @@ import {
   DrawerHeader,
   DrawerBody,
   Input,
+  useToast,
+  Spinner,
 } from "@chakra-ui/react";
 import { BellIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import React, { ChangeEvent, useState } from "react";
+import ChatLoading from "../ChatLoading";
 import { ChatState } from "../../context/ChatProvider";
 import { IUser } from "../../types/user.types";
 import ProfileModal from "./ProfileModal";
 import { useHistory } from "react-router-dom";
+import axios from "axios";
+import UserListItem from "../UserAvatar/UserListItem";
 
 const SideDrawer = () => {
+  const toast = useToast();
   const history = useHistory();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const [search, setSearch] = useState("");
-  const [seachResult, setSeachResult] = useState([]);
+  const [searchResult, setSearchResult] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [loadingChat, setLoadingChat] = useState();
+  const [loadingChat, setLoadingChat] = useState(false);
 
   const { user } = ChatState() as IUser;
+  const { setSelectedChat, chats, setChats } = ChatState() as any;
 
   const handleLogout = () => {
     localStorage.removeItem("userInfo");
     history?.push("/");
+  };
+
+  const handleSearch = async () => {
+    if (!search) {
+      toast({
+        title: "Please enter something to search",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+        position: "top-left",
+      });
+      return;
+    }
+    try {
+      setLoading(true);
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      };
+
+      const { data } = await axios.get(`/api/user?search=${search}`, config);
+      setLoading(false);
+      setSearchResult(data);
+    } catch (e) {
+      toast({
+        title: "Error Occurred!",
+        description: "Failed to load the search results",
+        status: "warning",
+        duration: 5000,
+        isClosable: true,
+        position: "bottom-left",
+      });
+    }
+  };
+
+  const accessChat = async (userId: string) => {
+    try {
+      setLoadingChat(true);
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+          Authorization: `Bearer ${user.token}`,
+        },
+      };
+
+      const { data } = await axios.post("/api/chat", { userId }, config);
+      if (!chats.find((c: any) => c._id === data._id))
+        setChats([data, ...chats]);
+
+      setSelectedChat(data);
+      setLoadingChat(false);
+      onClose();
+    } catch (error: any) {
+      toast({
+        title: "Error fetching the chat",
+        description: error.message,
+        status: "error",
+        isClosable: true,
+        position: "bottom-left",
+      });
+    }
   };
 
   return (
@@ -105,12 +174,20 @@ const SideDrawer = () => {
                 }
                 mr={2}
               />
-              <Button
-              // onClick={handleSearch}
-              >
-                Go
-              </Button>
+              <Button onClick={handleSearch}>Go</Button>
             </Box>
+            {loading ? (
+              <ChatLoading />
+            ) : (
+              searchResult?.map((user: IUser["user"]["data"]) => (
+                <UserListItem
+                  user={user}
+                  key={user._id}
+                  handleFunction={() => accessChat(user._id)}
+                />
+              ))
+            )}
+            {loadingChat && <Spinner ml={"auto"} display={"flex"} />}
           </DrawerBody>
         </DrawerContent>
       </Drawer>
