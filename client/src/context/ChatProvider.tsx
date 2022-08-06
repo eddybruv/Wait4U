@@ -18,6 +18,8 @@ const ChatContext = createContext<IUser | {}>({});
 export const ChatProvider: FC<IComponent> = ({ children }: IComponent) => {
   const history = useHistory();
   const [user, setUser] = useState<IUser | {}>({});
+  const [selectedChat, setSelectedChat] = useState([]);
+  const [chats, setChats] = useState([]);
 
   useEffect(() => {
     const data = localStorage.getItem("userInfo");
@@ -30,7 +32,9 @@ export const ChatProvider: FC<IComponent> = ({ children }: IComponent) => {
   }, [history]);
 
   return (
-    <ChatContext.Provider value={{ user, setUser }}>
+    <ChatContext.Provider
+      value={{ user, setUser, selectedChat, setSelectedChat, chats, setChats }}
+    >
       {children}
     </ChatContext.Provider>
   );
