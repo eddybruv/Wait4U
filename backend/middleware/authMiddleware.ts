@@ -29,6 +29,6 @@ export const protect = async (
   }
 
   if (!token) {
-    res.status(401).json({message: "no token, no authorization"});
+    res.status(401).json({message: "token not found"});
   }
 };
